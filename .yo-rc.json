@@ -4,7 +4,7 @@
       "packageName": "io.github.pascalgrimaud",
       "nativeLanguage": "en"
     },
-    "jhipsterVersion": "6.1.2",
+    "jhipsterVersion": "6.10.3",
     "applicationType": "gateway",
     "baseName": "gateway",
     "packageName": "io.github.pascalgrimaud",
@@ -34,6 +34,9 @@
     "otherModules": [],
     "enableTranslation": true,
     "nativeLanguage": "en",
-    "languages": ["en"]
+    "languages": ["en"],
+    "embeddableLaunchScript": false,
+    "creationTimestamp": 1602248845782,
+    "blueprints": []
   }
 }

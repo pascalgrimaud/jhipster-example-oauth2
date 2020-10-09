@@ -1,28 +1,28 @@
 import { Component, OnInit } from '@angular/core';
 
-import { LoginService, AccountService, Account } from 'app/core';
+import { LoginService } from 'app/core/login/login.service';
+import { AccountService } from 'app/core/auth/account.service';
+import { Account } from 'app/core/user/account.model';
 
 @Component({
   selector: 'jhi-home',
   templateUrl: './home.component.html',
-  styleUrls: ['home.scss']
+  styleUrls: ['home.scss'],
 })
 export class HomeComponent implements OnInit {
-  account: Account;
+  account: Account | null = null;
 
   constructor(private accountService: AccountService, private loginService: LoginService) {}
 
-  ngOnInit() {
-    this.accountService.identity().then((account: Account) => {
-      this.account = account;
-    });
+  ngOnInit(): void {
+    this.accountService.identity().subscribe(account => (this.account = account));
   }
 
-  isAuthenticated() {
+  isAuthenticated(): boolean {
     return this.accountService.isAuthenticated();
   }
 
-  login() {
+  login(): void {
     this.loginService.login();
   }
 }

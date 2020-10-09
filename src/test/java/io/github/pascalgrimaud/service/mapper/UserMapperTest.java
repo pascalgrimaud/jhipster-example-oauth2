@@ -1,14 +1,9 @@
 package io.github.pascalgrimaud.service.mapper;
 
-
-import io.github.pascalgrimaud.GatewayApp;
-import io.github.pascalgrimaud.config.TestSecurityConfiguration;
 import io.github.pascalgrimaud.domain.User;
 import io.github.pascalgrimaud.service.dto.UserDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,22 +13,20 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Integration tests for {@link UserMapper}.
+ * Unit tests for {@link UserMapper}.
  */
-@SpringBootTest(classes = {GatewayApp.class, TestSecurityConfiguration.class})
-public class UserMapperIT {
+public class UserMapperTest {
 
     private static final String DEFAULT_LOGIN = "johndoe";
     private static final String DEFAULT_ID = "id1";
 
-    @Autowired
     private UserMapper userMapper;
-
     private User user;
     private UserDTO userDto;
 
     @BeforeEach
     public void init() {
+        userMapper = new UserMapper();
         user = new User();
         user.setLogin(DEFAULT_LOGIN);
         user.setActivated(true);

@@ -1,65 +1,60 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit, RendererFactory2, Renderer2 } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { Router, ActivatedRouteSnapshot, NavigationEnd, NavigationError } from '@angular/router';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 
-import { JhiLanguageHelper, Account, AccountService, StateStorageService } from 'app/core';
+import { AccountService } from 'app/core/auth/account.service';
 
 @Component({
   selector: 'jhi-main',
-  templateUrl: './main.component.html'
+  templateUrl: './main.component.html',
 })
-export class JhiMainComponent implements OnInit, OnDestroy {
-  _cleanup: Subject<any> = new Subject<any>();
+export class MainComponent implements OnInit {
+  private renderer: Renderer2;
 
   constructor(
     private accountService: AccountService,
-    private stateStorageService: StateStorageService,
-    private jhiLanguageHelper: JhiLanguageHelper,
-    private router: Router
-  ) {}
+    private titleService: Title,
+    private router: Router,
+    private translateService: TranslateService,
+    rootRenderer: RendererFactory2
+  ) {
+    this.renderer = rootRenderer.createRenderer(document.querySelector('html'), null);
+  }
 
-  private getPageTitle(routeSnapshot: ActivatedRouteSnapshot) {
-    let title: string = routeSnapshot.data && routeSnapshot.data['pageTitle'] ? routeSnapshot.data['pageTitle'] : 'gatewayApp';
+  ngOnInit(): void {
+    // try to log in automatically
+    this.accountService.identity().subscribe();
+
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.updateTitle();
+      }
+      if (event instanceof NavigationError && event.error.status === 404) {
+        this.router.navigate(['/404']);
+      }
+    });
+
+    this.translateService.onLangChange.subscribe((langChangeEvent: LangChangeEvent) => {
+      this.updateTitle();
+
+      this.renderer.setAttribute(document.querySelector('html'), 'lang', langChangeEvent.lang);
+    });
+  }
+
+  private getPageTitle(routeSnapshot: ActivatedRouteSnapshot): string {
+    let title: string = routeSnapshot.data && routeSnapshot.data['pageTitle'] ? routeSnapshot.data['pageTitle'] : '';
     if (routeSnapshot.firstChild) {
       title = this.getPageTitle(routeSnapshot.firstChild) || title;
     }
     return title;
   }
 
-  ngOnInit() {
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd) {
-        this.jhiLanguageHelper.updateTitle(this.getPageTitle(this.router.routerState.snapshot.root));
-      }
-      if (event instanceof NavigationError && event.error.status === 404) {
-        this.router.navigate(['/404']);
-      }
-    });
-    this.subscribeToLoginEvents();
-  }
-
-  ngOnDestroy() {
-    this._cleanup.next();
-    this._cleanup.complete();
-  }
-
-  private subscribeToLoginEvents() {
-    this.accountService
-      .getAuthenticationState()
-      .pipe(takeUntil(this._cleanup))
-      .subscribe((account: Account) => {
-        if (account) {
-          this.navigateToStoredUrl();
-        }
-      });
-  }
-
-  private navigateToStoredUrl() {
-    const previousUrl = this.stateStorageService.getUrl();
-    if (previousUrl) {
-      this.stateStorageService.storeUrl(null);
-      this.router.navigateByUrl(previousUrl);
+  private updateTitle(): void {
+    let pageTitle = this.getPageTitle(this.router.routerState.snapshot.root);
+    if (!pageTitle) {
+      pageTitle = 'global.title';
     }
+    this.translateService.get(pageTitle).subscribe(title => this.titleService.setTitle(title));
   }
 }

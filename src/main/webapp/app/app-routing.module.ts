@@ -1,7 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { errorRoute, navbarRoute } from './layouts';
+import { errorRoute } from './layouts/error/error.route';
+import { navbarRoute } from './layouts/navbar/navbar.route';
 import { DEBUG_INFO_ENABLED } from 'app/app.constants';
+import { Authority } from 'app/shared/constants/authority.constants';
+
+import { UserRouteAccessService } from 'app/core/auth/user-route-access-service';
 
 const LAYOUT_ROUTES = [navbarRoute, ...errorRoute];
 
@@ -11,13 +15,17 @@ const LAYOUT_ROUTES = [navbarRoute, ...errorRoute];
       [
         {
           path: 'admin',
-          loadChildren: './admin/admin.module#GatewayAdminModule'
+          data: {
+            authorities: [Authority.ADMIN],
+          },
+          canActivate: [UserRouteAccessService],
+          loadChildren: () => import('./admin/admin-routing.module').then(m => m.AdminRoutingModule),
         },
-        ...LAYOUT_ROUTES
+        ...LAYOUT_ROUTES,
       ],
       { enableTracing: DEBUG_INFO_ENABLED }
-    )
+    ),
   ],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class GatewayAppRoutingModule {}
